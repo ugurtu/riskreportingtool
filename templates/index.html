@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Risikosteckbrief Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;600&display=swap"
+          rel="stylesheet">
+    <style>
+        :root {
+            --bg: #ffffff;
+            --surface: #f8f9fb;
+            --border: #e2e5ea;
+            --accent: #4f8ef7;
+            --danger: #e05c5c;
+            --text: #1a1a2e;
+            --muted: #6b7280;
+            --green: #4caf7d;
+            --radius: 10px;
+            --mono: 'DM Mono', monospace;
+            --sans: 'DM Sans', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--sans);
+            height: 100vh;
+            overflow: hidden;
+            display: grid;
+            grid-template-rows:auto 1fr;
+            grid-template-columns:1fr 1fr
+        }
+
+        /* ── Header ── */
+        header {
+            grid-column: 1/-1;
+            background: #1f2937;
+            border-bottom: 1px solid #1f2937;
+            display: flex;
+            flex-direction: column;
+            overflow: visible
+        }
+
+        .hdr-top {
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            gap: 12px;
+            height: 56px;
+            flex-shrink: 0
+        }
+
+        header svg {
+            flex-shrink: 0
+        }
+
+        header h1 {
+            font-family: var(--mono);
+            font-size: 14px;
+            font-weight: 500;
+            color: #fff;
+            letter-spacing: .04em
+        }
+
+        .hdr-right {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 10px
+        }
+
+        #status {
+            font-size: 11px;
+            color: rgba(255, 255, 255, .5);
+            font-family: var(--mono)
+        }
+
+        #status.ok {
+            color: var(--green)
+        }
+
+        #status.error {
+            color: var(--danger)
+        }
+
+        .hbtn {
+            border: 1px solid rgba(255, 255, 255, .2);
+            background: transparent;
+            color: #fff;
+            border-radius: 6px;
+            padding: 6px 14px;
+            font-size: 12px;
+            font-family: var(--sans);
+            cursor: pointer;
+            font-weight: 500;
+            transition: all .15s
+        }
+
+        .hbtn:hover {
+            background: rgba(255, 255, 255, .1)
+        }
+
+        .hbtn:disabled {
+            opacity: .4;
+            cursor: wait
+        }
+
+        .hbtn.primary {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff
+        }
+
+        .hbtn.primary:hover {
+            opacity: .85
+        }
+
+        .hbtn:active {
+            transform: scale(.97)
+        }
+
+        /* ── Left pane: form ── */
+        .form-pane {
+            overflow-y: auto;
+            padding: 24px 28px 80px;
+            border-right: 1px solid #e2e5ea;
+            background: #fff
+        }
+
+        /* ── Right pane: preview ── */
+        .preview-pane {
+            display: flex;
+            flex-direction: column;
+            background: #fff
+        }
+
+        .pane-hdr {
+            padding: 10px 20px;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .1em;
+            color: #6b7280;
+            font-weight: 600;
+            border-bottom: 1px solid #e2e5ea;
+            background: #f4f5f7;
+            flex-shrink: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center
+        }
+
+        .pane-hdr span:last-child {
+            font-weight: 400;
+            text-transform: none;
+            letter-spacing: 0;
+            font-size: 10px;
+            font-family: var(--mono)
+        }
+
+        .preview-pane iframe {
+            flex: 1;
+            width: 100%;
+            border: none;
+            background: #fff;
+            border-radius: 0
+        }
+
+        .preview-empty {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            color: #bbb
+        }
+
+        .preview-empty svg {
+            opacity: .15
+        }
+
+        .preview-empty p {
+            font-size: 13px
+        }
+
+        /* ── Section titles ── */
+        .section-title {
+            grid-column: 1/-1;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .1em;
+            color: var(--accent);
+            font-weight: 600;
+            border-top: 1px solid var(--border);
+            padding-top: 16px;
+            margin-top: 4px
+        }
+
+        .section-title:first-child {
+            border-top: none;
+            padding-top: 0;
+            margin-top: 0
+        }
+
+        /* ── Form grid ── */
+        .fg-grid {
+            display: grid;
+            grid-template-columns:1fr 1fr;
+            gap: 14px;
+            max-width: 100%
+        }
+
+        .fg {
+            display: flex;
+            flex-direction: column;
+            gap: 5px
+        }
+
+        .fg.full {
+            grid-column: 1/-1
+        }
+
+        label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: var(--muted);
+            font-weight: 600
+        }
+
+        input, textarea, select {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            color: var(--text);
+            font-family: var(--sans);
+            font-size: 13px;
+            padding: 8px 12px;
+            transition: border-color .15s;
+            outline: none;
+            width: 100%
+        }
+
+        input:focus, textarea:focus, select:focus {
+            border-color: var(--accent)
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 72px;
+            font-family: var(--mono);
+            font-size: 12px;
+            line-height: 1.6
+        }
+
+        select option {
+            background: #fff
+        }
+
+        /* ── CIA ── */
+        .cia-row {
+            display: flex;
+            gap: 10px
+        }
+
+        .cia-row .fg {
+            flex: 1
+        }
+
+        .cia-row input {
+            text-align: center;
+            font-weight: 600;
+            font-size: 1rem;
+            font-family: var(--mono)
+        }
+
+        /* ── Interval pills ── */
+
+
+        /* ── Matrix ── */
+        .matrix-outer {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start
+        }
+
+        .row-lbs {
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 2px
+        }
+
+        .row-lbs span {
+            height: 44px;
+            display: flex;
+            align-items: center;
+            font-size: 10px;
+            color: var(--muted);
+            font-family: var(--mono);
+            white-space: nowrap;
+            padding-right: 6px
+        }
+
+        .mgrid {
+            display: grid;
+            grid-template-columns:repeat(4, 44px);
+            grid-template-rows:repeat(4, 44px);
+            gap: 2px
+        }
+
+        .cell {
+            border-radius: 4px;
+            cursor: pointer;
+            position: relative;
+            transition: transform .1s, box-shadow .1s
+        }
+
+        .cell:hover {
+            transform: scale(1.1);
+            z-index: 2;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, .4)
+        }
+
+        .cell.marked::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            margin: auto;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: white;
+            border: 2px solid rgba(0, 0, 0, .25);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, .4)
+        }
+
+        .col-lbs {
+            display: flex;
+            gap: 2px;
+            margin-top: 4px
+        }
+
+        .col-lbs span {
+            width: 44px;
+            text-align: center;
+            font-size: 10px;
+            color: var(--muted);
+            font-family: var(--mono)
+        }
+
+        /* ── Tables ── */
+        .tbl {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 12px;
+            font-family: var(--mono)
+        }
+
+        .tbl th {
+            background: var(--border);
+            color: var(--muted);
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            padding: 7px 10px;
+            text-align: left;
+            font-weight: 600;
+            outline: none
+        }
+
+        .tbl th:first-child {
+            border-radius: 6px 0 0 0
+        }
+
+        .tbl th:nth-last-child(2) {
+            border-radius: 0 6px 0 0
+        }
+
+        .tbl td {
+            padding: 0;
+            border-bottom: 1px solid var(--border)
+        }
+
+        .tbl td input {
+            width: 100%;
+            padding: 8px 10px;
+            border: none;
+            outline: none;
+            background: transparent;
+            font-size: 12px;
+            font-family: var(--mono);
+            color: var(--text)
+        }
+
+        .tbl td input:focus {
+            background: rgba(79, 142, 247, .05)
+        }
+
+        .tbl tr:nth-child(even) td {
+            background: rgba(0, 0, 0, .02)
+        }
+
+        .del-cell {
+            width: 28px;
+            text-align: center
+        }
+
+        .del-cell button {
+            width: 28px;
+            height: 28px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--muted);
+            font-size: 14px;
+            transition: color .12s
+        }
+
+        .del-cell button:hover {
+            color: var(--danger)
+        }
+
+        .add-btn {
+            margin-top: 6px;
+            display: inline-flex;
+            align-items: center;
+            padding: 5px 12px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 11px;
+            font-family: var(--sans);
+            color: var(--muted);
+            cursor: pointer;
+            transition: all .12s
+        }
+
+        .add-btn:hover {
+            color: var(--text);
+            border-color: var(--muted)
+        }
+
+        /* ── Logo + nav drawer ── */
+        .logo-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            transition: background .12s
+        }
+
+        .logo-btn:hover {
+            background: rgba(255, 255, 255, .1)
+        }
+
+        .nav-drawer {
+            display: none;
+            background: #1f2937;
+            border-top: 1px solid rgba(255, 255, 255, .08);
+            padding: 6px 20px;
+            gap: 6px;
+            flex-wrap: wrap
+        }
+
+        .nav-drawer.open {
+            display: flex
+        }
+
+        .nav-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 16px;
+            border: none;
+            background: rgba(255, 255, 255, .06);
+            border-radius: 6px;
+            font-size: 12px;
+            font-family: var(--sans);
+            color: rgba(255, 255, 255, .7);
+            cursor: pointer;
+            transition: all .12s;
+            font-weight: 500
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, .12);
+            color: #fff
+        }
+
+        .nav-item:active {
+            transform: scale(.97)
+        }
+
+        .nav-item svg {
+            opacity: .6
+        }
+
+        .nav-item:hover svg {
+            opacity: 1
+        }
+
+        /* ── Gear animation ── */
+        .gear-wrap {
+            display: flex;
+            align-items: center
+        }
+
+        .gear-spin {
+            animation: spin 1.2s linear infinite
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg)
+            }
+            to {
+                transform: rotate(360deg)
+            }
+        }
+
+        /* ── Scrollbar ── */
+        ::-webkit-scrollbar {
+            width: 5px
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 3px
+        }
+
+        /* ── Toast ── */
+        #toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--green);
+            color: #fff;
+            padding: 9px 18px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            opacity: 0;
+            transform: translateY(6px);
+            transition: all .22s;
+            pointer-events: none
+        }
+
+        #toast.show {
+            opacity: 1;
+            transform: translateY(0)
+        }
+
+        #toast.err {
+            background: var(--danger)
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="hdr-top">
+        <button class="logo-btn" onclick="toggleNav()" aria-label="Menu">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+                <rect x="2" y="2" width="7" height="7" rx="1.5" fill="#e05c5c"/>
+                <rect x="11" y="2" width="7" height="7" rx="1.5" fill="#f5c842"/>
+                <rect x="2" y="11" width="7" height="7" rx="1.5" fill="#4caf7d"/>
+                <rect x="11" y="11" width="7" height="7" rx="1.5" fill="#4f8ef7"/>
+            </svg>
+        </button>
+        <h1>Risikosteckbrief</h1>
+        <div class="hdr-right">
+            <span id="status"></span>
+            <div id="gear" class="gear-wrap" style="display:none">
+                <svg class="gear-spin" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff"
+                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3"/>
+                    <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
+                </svg>
+            </div>
+            <button class="hbtn primary" onclick="doPreview()">Preview</button>
+        </div>
+    </div>
+    <div class="nav-drawer" id="navDrawer">
+        <button class="nav-item" onclick="doDownload();toggleNav()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Download PDF
+        </button>
+        <button class="nav-item" onclick="exportJSON();toggleNav()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="12" y1="18" x2="12" y2="12"/>
+                <polyline points="9 15 12 18 15 15"/>
+            </svg>
+            Export JSON
+        </button>
+        <button class="nav-item" onclick="document.getElementById('jsonUpload').click();toggleNav()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="12" y1="12" x2="12" y2="18"/>
+                <polyline points="9 15 12 12 15 15"/>
+            </svg>
+            Import JSON
+        </button>
+    </div>
+    <input type="file" id="jsonUpload" accept=".json" style="display:none" onchange="importJSON(this)">
+</header>
+
+<!-- ── Left: Form ── -->
+<div class="form-pane">
+    <form id="risikoForm">
+        <div class="fg-grid">
+
+            <div class="section-title" style="border-top:none;padding-top:0;margin-top:0">Meta</div>
+
+            <div class="fg full"><label>Risk title</label><input type="text" name="risk_title" value="Stromausfall"
+                                                                 required></div>
+            <div class="fg"><label>Risk owner</label><input type="text" name="owner" value="Ugur Turhal"></div>
+            <div class="fg"><label>Review date</label><input type="text" name="review_date" value="25.11.2023"></div>
+            <div class="fg">
+                <label>Interval</label>
+                <select name="interval" id="intervalInput"
+                        onchange="document.getElementById('intervalInput').value=this.value">
+                    <option value="monatlich">Monthly</option>
+                    <option value="1/4 jährlich" selected>Quarterly</option>
+                    <option value="1/2 jährlich">Semi-annually</option>
+                    <option value="jährlich">Yearly</option>
+                    <option value="Alle 2 Jahre">Every 2 years</option>
+                </select>
+            </div>
+
+            <div class="section-title">CIA Values</div>
+
+            <div class="fg full">
+                <div class="cia-row">
+                    <div class="fg"><label>C — Confidentiality</label><input type="text" name="cia_c" value="1"
+                                                                             maxlength="1"></div>
+                    <div class="fg"><label>I — Integrity</label><input type="text" name="cia_i" value="3" maxlength="1">
+                    </div>
+                    <div class="fg"><label>A — Availability</label><input type="text" name="cia_a" value="4"
+                                                                          maxlength="1"></div>
+                </div>
+            </div>
+
+            <div class="section-title">Description</div>
+
+            <div class="fg full">
+    <textarea name="description" rows="4">Von der Stromversorgung sind nicht nur die offensichtlichen, direkten Stromverbraucher (PC, Beleuchtung usw.) abhängig.
+Viele Infrastruktur-Einrichtungen sind vom Strom abhängig, z.B. Aufzüge, Klimatechnik, Gefahrenmeldeanlagen, Sicherheitsschleusen, automatische Türschließanlagen und Sprinkleranlagen.
+Bei längeren Stromausfällen kann der Ausfall der Infrastruktureinrichtungen dazu führen, dass keinerlei Tätigkeiten mehr in den betroffenen Räumlichkeiten durchgeführt werden können.</textarea>
+            </div>
+
+            <div class="section-title">Risk Assessment</div>
+
+            <div class="fg full"><label>Assessment</label><textarea name="assessment" rows="2">Stromausfälle können zu Beschädigungen an Systemen, Produktionsausfällen, Reputationsverlust, Auftragsverlust, Insolvenz führen.</textarea>
+            </div>
+            <div class="fg full"><label>Conclusion - With respect to the Risk Matrix</label><textarea name="conclusion"
+                                                                                                      rows="2">Durch die bestehenden Maßnahmen sind ein Stromausfall und der Totalausfall der Informationstechnik und der Verlust der Daten eher selten.</textarea>
+            </div>
+
+            <div class="section-title">Risk Position</div>
+
+            <div class="fg full">
+                <label>Click a cell to set position</label>
+                <div class="matrix-outer" style="justify-content:center">
+                    <div class="row-lbs"><span>frequent</span><span>likely</span><span>rare</span><span>unlikely</span>
+                    </div>
+                    <div>
+                        <div class="mgrid" id="mgrid"></div>
+                        <div class="col-lbs"><span>low</span><span>medium</span><span>high</span><span>v. high</span>
+                        </div>
+                    </div>
+                </div>
+                <input type="hidden" name="matrix_row" id="f-mrow" value="0">
+                <input type="hidden" name="matrix_col" id="f-mcol" value="2">
+            </div>
+
+            <div class="section-title">Massnahmen zur Risikominderung</div>
+
+            <div class="fg full">
+                <table class="tbl">
+                    <tbody id="riskTableBody"></tbody>
+                </table>
+                <button class="add-btn" onclick="addRiskRow()" type="button">+ Add row</button>
+            </div>
+
+            <div class="section-title">Risikoverteilung</div>
+
+            <div class="fg full">
+                <table class="tbl">
+                    <tbody id="divBody"></tbody>
+                </table>
+                <button class="add-btn" onclick="addDivRow()" type="button">+ Add row</button>
+            </div>
+
+            <div class="section-title">Residual Risk</div>
+
+            <div class="fg full"><textarea name="residualrisk" rows="2">Stromausfälle können zu Beschädigungen an Systemen, Produktionsausfällen, Reputationsverlust, Auftragsverlust, Insolvenz führen.</textarea>
+            </div>
+
+            <div class="section-title">Risk Acceptance</div>
+
+            <div class="fg full"><textarea name="riskacceptance" rows="2">Stromausfälle können zu Beschädigungen an Systemen, Produktionsausfällen, Reputationsverlust, Auftragsverlust, Insolvenz führen.</textarea>
+            </div>
+
+        </div>
+    </form>
+</div>
+
+<!-- ── Right: Preview ── -->
+<div class="preview-pane">
+    <div class="pane-hdr"><span>Preview</span><span id="previewHint">Enter to generate</span></div>
+    <div class="preview-empty" id="emptyState">
+        <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
+            <rect x="4" y="4" width="16" height="16" rx="3" fill="currentColor"/>
+            <rect x="24" y="4" width="16" height="16" rx="3" fill="currentColor"/>
+            <rect x="4" y="24" width="16" height="16" rx="3" fill="currentColor"/>
+            <rect x="24" y="24" width="16" height="16" rx="3" fill="currentColor"/>
+        </svg>
+        <p>Edit the form, then press Enter</p>
+    </div>
+    <iframe id="pdfFrame" style="display:none"></iframe>
+</div>
+
+<div id="toast"></div>
+
+<script>
+    const COLORS = [
+        ['#4caf7d', '#aed581', '#ffeb3b', '#ffeb3b'],
+        ['#aed581', '#ffeb3b', '#ff9800', '#ff9800'],
+        ['#ffeb3b', '#ff9800', '#ff9800', '#ef5350'],
+        ['#ffeb3b', '#ff9800', '#ef5350', '#ef5350']
+    ];
+
+
+    let selCol = 2, selRow = 0;
+
+    function buildMatrix(c, r) {
+        selCol = c;
+        selRow = r;
+        document.getElementById('f-mcol').value = c;
+        document.getElementById('f-mrow').value = r;
+        const g = document.getElementById('mgrid');
+        g.innerHTML = '';
+        for (let row = 3; row >= 0; row--) for (let col = 0; col < 4; col++) {
+            const cell = document.createElement('div');
+            cell.className = 'cell' + (col === c && row === r ? ' marked' : '');
+            cell.style.background = COLORS[row][col];
+            cell.onclick = () => buildMatrix(col, row);
+            g.appendChild(cell);
+        }
+    }
+
+    buildMatrix(2, 0);
+
+    function addRiskRow(a = '', b = '') {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td><input type="text" name="risk_col1[]" value="${a}" placeholder="Factor…"></td><td><input type="text" name="risk_col2[]" value="${b}" placeholder="Measure…"></td><td class="del-cell"><button type="button" onclick="this.closest('tr').remove()">×</button></td>`;
+        document.getElementById('riskTableBody').appendChild(tr);
+    }
+
+    addRiskRow();
+
+    function addDivRow(val = '') {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td><input type="text" name="div_col1[]" value="${val}" placeholder="Item…"></td><td class="del-cell"><button type="button" onclick="this.closest('tr').remove()">×</button></td>`;
+        document.getElementById('divBody').appendChild(tr);
+    }
+
+    addDivRow();
+
+    let lastBlob = null;
+
+    function submitForm(mode) {
+        const st = document.getElementById('status');
+        st.textContent = '';
+        st.className = '';
+        document.getElementById('gear').style.display = 'flex';
+        fetch('/generate', {method: 'POST', body: new FormData(document.getElementById('risikoForm'))})
+            .then(async r => {
+                if (!r.ok) {
+                    const e = await r.json().catch(() => ({error: 'Error'}));
+                    throw new Error(e.error || 'Error')
+                }
+                return r.blob()
+            })
+            .then(blob => {
+                if (lastBlob) URL.revokeObjectURL(lastBlob);
+                lastBlob = URL.createObjectURL(blob);
+                if (mode === 'preview') {
+                    document.getElementById('emptyState').style.display = 'none';
+                    const f = document.getElementById('pdfFrame');
+                    f.style.display = 'block';
+                    f.src = lastBlob;
+                    toast('Preview updated');
+                } else {
+                    const a = document.createElement('a');
+                    a.href = lastBlob;
+                    a.download = 'Risk Assessment Report - ' + new FormData(document.getElementById('risikoForm')).get('risk_title').replace(/\s+/g, '_') + '.pdf';
+                    a.click();
+                    toast('Downloaded');
+                }
+                st.textContent = '';
+                document.getElementById('gear').style.display = 'none';
+            })
+            .catch(e => {
+                document.getElementById('gear').style.display = 'none';
+                st.textContent = e.message;
+                st.className = 'error';
+                toast(e.message, true)
+            });
+    }
+
+    function doPreview() {
+        submitForm('preview')
+    }
+
+    function doDownload() {
+        submitForm('download')
+    }
+
+    document.getElementById('risikoForm').addEventListener('keydown', e => {
+        if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+            e.preventDefault();
+            doPreview()
+        }
+    });
+    document.addEventListener('keydown', e => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+            e.preventDefault();
+            doPreview()
+        }
+    });
+
+    function exportJSON() {
+        const form = document.getElementById('risikoForm');
+        const fd = new FormData(form);
+        const data = {};
+        fd.forEach((v, k) => {
+            if (k.endsWith('[]')) {
+                const key = k.slice(0, -2);
+                if (!data[key]) data[key] = [];
+                data[key].push(v);
+            } else {
+                data[k] = v
+            }
+        });
+        data.matrix_row = document.getElementById('f-mrow').value;
+        data.matrix_col = document.getElementById('f-mcol').value;
+        const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'Risikosteckbrief_' + (data.risk_title || 'export').replace(/\s+/g, '_') + '.json';
+        a.click();
+        URL.revokeObjectURL(a.href);
+        toast('JSON exported');
+    }
+
+    function importJSON(input) {
+        const file = input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            try {
+                const d = JSON.parse(e.target.result);
+                const f = id => document.querySelector('[name="' + id + '"]');
+                if (d.risk_title) f('risk_title').value = d.risk_title;
+                if (d.owner) f('owner').value = d.owner;
+                if (d.review_date) f('review_date').value = d.review_date;
+                if (d.interval) f('interval').value = d.interval;
+                if (d.source) f('source').value = d.source;
+                if (d.cia_c) f('cia_c').value = d.cia_c;
+                if (d.cia_i) f('cia_i').value = d.cia_i;
+                if (d.cia_a) f('cia_a').value = d.cia_a;
+                if (d.description) f('description').value = d.description;
+                if (d.assessment) f('assessment').value = d.assessment;
+                if (d.conclusion) f('conclusion').value = d.conclusion;
+                if (d.residualrisk) f('residualrisk').value = d.residualrisk;
+                if (d.riskacceptance) f('riskacceptance').value = d.riskacceptance;
+                if (d.matrix_col != null && d.matrix_row != null) buildMatrix(parseInt(d.matrix_col), parseInt(d.matrix_row));
+                // Risk table rows
+                document.getElementById('riskTableBody').innerHTML = '';
+                if (d.risk_col1 && d.risk_col2) {
+                    for (let i = 0; i < d.risk_col1.length; i++) addRiskRow(d.risk_col1[i] || '', d.risk_col2[i] || '');
+                } else {
+                    addRiskRow()
+                }
+                // Div table rows
+                document.getElementById('divBody').innerHTML = '';
+                if (d.div_col1) {
+                    d.div_col1.forEach(v => addDivRow(v));
+                } else {
+                    addDivRow()
+                }
+                toast('JSON imported');
+            } catch (err) {
+                toast('Invalid JSON: ' + err.message, true)
+            }
+        };
+        reader.readAsText(file);
+        input.value = '';
+    }
+
+    function toggleNav() {
+        document.getElementById('navDrawer').classList.toggle('open')
+    }
+
+    function toast(msg, err = false) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.className = 'show' + (err ? ' err' : '');
+        setTimeout(() => t.className = '', 2200)
+    }
+</script>
+</body>
+</html>
