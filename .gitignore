@@ -3,9 +3,11 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+# Special files
+riskmanager.html
 # C extensions
 *.so
-*.venv/
+.venv/
 # Distribution / packaging
 .Python
 build/
