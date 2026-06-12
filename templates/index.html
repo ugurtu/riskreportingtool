@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Risikosteckbrief Generator</title>
+    <title>Risk Assessment Generator</title>
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;600&display=swap"
           rel="stylesheet">
     <style>
@@ -578,7 +578,7 @@
                 <rect x="11" y="11" width="7" height="7" rx="1.5" fill="#4f8ef7"/>
             </svg>
         </button>
-        <h1>Risikosteckbrief</h1>
+        <h1>RaR (Risk Assessment Report)</h1>
         <div class="hdr-right">
             <span id="status"></span>
             <div id="gear" class="gear-wrap" style="display:none">
@@ -629,7 +629,7 @@
 
             <div class="section-title" style="border-top:none;padding-top:0;margin-top:0">Meta</div>
 
-            <div class="fg full"><label>Risk title</label><input type="text" name="risk_title" value="Stromausfall"
+            <div class="fg full"><label>Risk title</label><input type="text" name="risk_title" value="YellowKey"
                                                                  required></div>
             <div class="fg"><label>Risk owner</label><input type="text" name="owner" value="Ugur Turhal"></div>
             <div class="fg"><label>Review date</label><input type="text" name="review_date" value="25.11.2023"></div>
@@ -637,11 +637,11 @@
                 <label>Interval</label>
                 <select name="interval" id="intervalInput"
                         onchange="document.getElementById('intervalInput').value=this.value">
-                    <option value="monatlich">Monthly</option>
-                    <option value="1/4 jährlich" selected>Quarterly</option>
-                    <option value="1/2 jährlich">Semi-annually</option>
-                    <option value="jährlich">Yearly</option>
-                    <option value="Alle 2 Jahre">Every 2 years</option>
+                    <option value="Monthly">Monthly</option>
+                    <option value="Quarterly" selected>Quarterly</option>
+                    <option value="Semi annually">Semi-annually</option>
+                    <option value="Anually">Annually</option>
+                    <option value="Every Two Years">Every 2 years</option>
                 </select>
             </div>
 
@@ -649,11 +649,11 @@
 
             <div class="fg full">
                 <div class="cia-row">
-                    <div class="fg"><label>C — Confidentiality</label><input type="text" name="cia_c" value="1"
-                                                                             maxlength="1"></div>
-                    <div class="fg"><label>I — Integrity</label><input type="text" name="cia_i" value="3" maxlength="1">
+                    <div class="fg"><label>C (Confidentiality) </label><input type="text" name="cia_c" value="1"
+                                                                              maxlength="1"></div>
+                    <div class="fg"><label>I (Integrity)</label><input type="text" name="cia_i" value="3" maxlength="1">
                     </div>
-                    <div class="fg"><label>A — Availability</label><input type="text" name="cia_a" value="4"
+                    <div class="fg"><label>A (Availability)</label><input type="text" name="cia_a" value="4"
                                                                           maxlength="1"></div>
                 </div>
             </div>
@@ -661,17 +661,17 @@
             <div class="section-title">Description</div>
 
             <div class="fg full">
-    <textarea name="description" rows="4">Von der Stromversorgung sind nicht nur die offensichtlichen, direkten Stromverbraucher (PC, Beleuchtung usw.) abhängig.
-Viele Infrastruktur-Einrichtungen sind vom Strom abhängig, z.B. Aufzüge, Klimatechnik, Gefahrenmeldeanlagen, Sicherheitsschleusen, automatische Türschließanlagen und Sprinkleranlagen.
-Bei längeren Stromausfällen kann der Ausfall der Infrastruktureinrichtungen dazu führen, dass keinerlei Tätigkeiten mehr in den betroffenen Räumlichkeiten durchgeführt werden können.</textarea>
+    <textarea name="description" rows="4">CVE-2026-45585 allows BitLocker disk encryption to be bypassed via the Windows Recovery Environment (WinRE). With physical access to a device, an attacker can plant crafted FsTx files via a USB drive or EFI partition, reboot the system into WinRE, and trigger an unrestricted shell by holding the CTRL key. This grants pre-boot access to the encrypted volume before the legitimate user regains control.
+Affected systems are Windows 11 and Windows Server 2025 devices using BitLocker, particularly those relying solely on TPM-based protection without an additional PIN.
+</textarea>
             </div>
 
             <div class="section-title">Risk Assessment</div>
 
-            <div class="fg full"><label>Assessment</label><textarea name="assessment" rows="2">Stromausfälle können zu Beschädigungen an Systemen, Produktionsausfällen, Reputationsverlust, Auftragsverlust, Insolvenz führen.</textarea>
+            <div class="fg full"><label>Assessment</label><textarea name="assessment" rows="2">If a mobile device (laptop, portable server) is lost or stolen, an attacker with physical access can bypass encryption and read confidential data. A publicly available PoC significantly lowers the barrier for copycat attacks.</textarea>
             </div>
             <div class="fg full"><label>Conclusion - With respect to the Risk Matrix</label><textarea name="conclusion"
-                                                                                                      rows="2">Durch die bestehenden Maßnahmen sind ein Stromausfall und der Totalausfall der Informationstechnik und der Verlust der Daten eher selten.</textarea>
+                                                                                                      rows="2">Due to the absence of pre-boot PIN authentication on many mobile devices and the low detectability of this attack (no vendor IOCs, offline pre-boot execution), the risk for affected device classes is rated as high.</textarea>
             </div>
 
             <div class="section-title">Risk Position</div>
@@ -679,11 +679,11 @@ Bei längeren Stromausfällen kann der Ausfall der Infrastruktureinrichtungen da
             <div class="fg full">
                 <label>Click a cell to set position</label>
                 <div class="matrix-outer" style="justify-content:center">
-                    <div class="row-lbs"><span>frequent</span><span>likely</span><span>rare</span><span>unlikely</span>
+                    <div class="row-lbs"><span>highly unlikely</span><span>unlikely</span><span>likely</span><span>constantly</span>
                     </div>
                     <div>
                         <div class="mgrid" id="mgrid"></div>
-                        <div class="col-lbs"><span>low</span><span>medium</span><span>high</span><span>v. high</span>
+                        <div class="col-lbs"><span>low</span><span>medium</span><span>high</span><span>very high</span>
                         </div>
                     </div>
                 </div>
@@ -691,7 +691,7 @@ Bei längeren Stromausfällen kann der Ausfall der Infrastruktureinrichtungen da
                 <input type="hidden" name="matrix_col" id="f-mcol" value="2">
             </div>
 
-            <div class="section-title">Massnahmen zur Risikominderung</div>
+            <div class="section-title">Measures to reduce the risk</div>
 
             <div class="fg full">
                 <table class="tbl">
@@ -700,7 +700,7 @@ Bei längeren Stromausfällen kann der Ausfall der Infrastruktureinrichtungen da
                 <button class="add-btn" onclick="addRiskRow()" type="button">+ Add row</button>
             </div>
 
-            <div class="section-title">Risikoverteilung</div>
+            <div class="section-title">Risk allocation across services</div>
 
             <div class="fg full">
                 <table class="tbl">
@@ -711,12 +711,12 @@ Bei längeren Stromausfällen kann der Ausfall der Infrastruktureinrichtungen da
 
             <div class="section-title">Residual Risk</div>
 
-            <div class="fg full"><textarea name="residualrisk" rows="2">Stromausfälle können zu Beschädigungen an Systemen, Produktionsausfällen, Reputationsverlust, Auftragsverlust, Insolvenz führen.</textarea>
+            <div class="fg full"><textarea name="residualrisk" rows="2">Even after implementing the temporary mitigation, residual risk remains for devices without pre-boot authentication, as similar classes of physical-access attacks remain possible. A permanent vendor patch is not yet available at the time of this assessment.</textarea>
             </div>
 
             <div class="section-title">Risk Acceptance</div>
 
-            <div class="fg full"><textarea name="riskacceptance" rows="2">Stromausfälle können zu Beschädigungen an Systemen, Produktionsausfällen, Reputationsverlust, Auftragsverlust, Insolvenz führen.</textarea>
+            <div class="fg full"><textarea name="riskacceptance" rows="2">Acceptance of the residual risk by management on 12 June 2026.</textarea>
             </div>
 
         </div>
@@ -866,7 +866,7 @@ Bei längeren Stromausfällen kann der Ausfall der Infrastruktureinrichtungen da
         const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = 'Risikosteckbrief_' + (data.risk_title || 'export').replace(/\s+/g, '_') + '.json';
+        a.download = 'Risk Summary Sheet_' + (data.risk_title || 'export').replace(/\s+/g, '_') + '.json';
         a.click();
         URL.revokeObjectURL(a.href);
         toast('JSON exported');
