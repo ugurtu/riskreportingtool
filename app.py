@@ -109,7 +109,7 @@ def build_latex(data, col1_values, col2_values, col1_header, col2_header, div_co
 """
 
     # Title
-    tex += "{\\bfseries\\color{headerblue} Risikosteckbrief - " + risk_title + "\\newline \\small \\today }\n\n"
+    tex += "{\\bfseries\\color{headerblue} Risk Assessment Report - " + risk_title + "\\hfill \\small \\today }\n\n"
     tex += "\\vspace{0.3cm}\n\n"
 
     # Header table (owner, review, interval)
@@ -155,7 +155,7 @@ def build_latex(data, col1_values, col2_values, col1_header, col2_header, div_co
 
     # Risk matrix
     tex += "\\begin{figure}[!h]\\centering\\begin{tikzpicture}[scale=1.4]\n"
-    row_labels = ['unlikely', 'rare', 'likely', 'frequent']
+    row_labels = ['highly unlikely', 'unlikely', 'likely', 'constantly']
     col_labels = ['low', 'medium', 'high', 'very high']
     for i, lbl in enumerate(row_labels):
         tex += f"  \\node[anchor=east,font=\\small] at (0,{i + 0.5}) {{{lbl}}};\n"
